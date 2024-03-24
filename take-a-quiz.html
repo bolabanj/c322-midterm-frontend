@@ -4,8 +4,149 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+  </head>
 </head>
-<body>
-  
+<body id="body">
+  <ul class="topnav">
+    <li><a class="" href="index.html">Home</a></li>
+    <li><a href="add-question.html">Add questions</a></li>
+    <li><a href="make-a-quiz.html">Create a quiz</a></li>
+    <li><a class="active" href="take-a-quiz.html">Take a quiz</a></li>
+    <li class="right"><a href="#about">About</a></li>
+  </ul>
+  <h2>Here is a list of all the available Quizzes. Click on a quiz to start taking the quiz</h2>
+  <div id="list" class="cards"></div>
+
+
+
+  <script>
+    let host = "http://localhost:8080";
+    let quizzes = []
+    let score = 0;
+    let correct = false;
+    async function getAll(){
+      let response = await fetch(host + "/quizzes");
+      let result = await response.json();
+      quizzes = result;
+      console.log(quizzes);
+      let list = document.getElementById("list");
+      list.innerHTML = "";
+      for(let i = 0; i < quizzes.length; i++){
+        let card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<div>${quizzes[i].id}</div><div><h2>` + quizzes[i].title + `</h2></div><div>(`+quizzes[i].questionIds.length+`) questions</div>`;
+        card.onclick = function(){
+          startQuiz(quizzes[i]);
+        }
+        
+        list.appendChild(card);
+      }
+
+     
+    }
+    getAll();
+
+
+    async function startQuiz(quiz){
+      body  = document.getElementById("body");
+      body.removeChild(document.getElementById("list"));
+       
+      gameQuestions = quiz.questions;
+     
+
+      body = document.getElementById("body");
+      console.log(gameQuestions);
+      displayQuestions(0, gameQuestions[0], body, gameQuestions.length);
+
+      
+    }
+    function  displayQuestions(iter, currentQuestion, body, maxlen){
+      body.innerHTML = "";
+      let card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML =`
+      <img src="http://localhost:8080/questions/${currentQuestion.id}/image" alt="question" style="width:100%">
+        <div class="container">
+          <h4><b>${currentQuestion.id}</b></h4> 
+          <p>${currentQuestion.description}</p>
+          <form>
+              <input type="radio" id="q${currentQuestion.id}ptionA" name="q2Answer" value="${currentQuestion.choices[0]}">
+              <label for="q${currentQuestion.id}ptionA">${currentQuestion.choices[0]}</label><br>
+
+              <input type="radio" id="q${currentQuestion.id}ptionB" name="q2Answer" value="${currentQuestion.choices[1]}">
+              <label for="q${currentQuestion.id}ptionB">${currentQuestion.choices[1]}</label><br>
+
+              <input type="radio" id="q${currentQuestion.id}ptionC" name="q2Answer" value="${currentQuestion.choices[2]}">
+              <label for="q${currentQuestion.id}ptionC">${currentQuestion.choices[2]}</label><br>       
+          </form> 
+        </div>
+        <p>Question ${iter} of ${maxlen}</p>
+      ` 
+      if(iter != 0){
+        prevButton = document.createElement("button");
+        prevButton.innerHTML = "Previous";
+
+        card.appendChild(prevButton);
+        prevButton.onclick = function(){
+          prev(iter-1, gameQuestions[iter-1], body, maxlen);
+        }
+        body.appendChild(card);
+      }
+      nextButton = document.createElement("button");
+      nextButton.innerHTML = "Next";
+      nextButton.onclick = function(){
+        next(iter+1, gameQuestions[iter+1], gameQuestions[iter], body, maxlen);
+      }
+      card.appendChild(nextButton);
+      body.appendChild(card);
+
+    }
+    function next(iter, nextQuestion,  currentQuestion, body, maxlen){
+      let selection = document.querySelector('input[name="q2Answer"]:checked').value;
+      console.log(selection);
+      console.log(currentQuestion.answer);
+      if(selection == currentQuestion.answer){
+        score++;
+        correct = true;
+      }
+      else{
+        correct = false;
+      }
+      if(iter == maxlen){
+        body.innerHTML = "";
+        nav = document.createElement("div");
+        nav.innerHTML = `<ul class="topnav">
+    <li><a class="" href="index.html">Home</a></li>
+    <li><a href="add-question.html">Add questions</a></li>
+    <li><a href="make-a-quiz.html">Create a quiz</a></li>
+    <li><a class="active" href="take-a-quiz.html">Take a quiz</a></li>
+    <li class="right"><a href="#about">About</a></li>
+  </ul>`
+        body.appendChild(nav);
+        let result  = document.createElement("div");
+        result.innerHTML = `<h1>Quiz Completed</h1><h2>Your score is ${score} out of ${maxlen}</h2>`;
+        body.appendChild(result);
+      }
+      else{
+        displayQuestions(iter, nextQuestion, body, maxlen);
+      }
+      
+    }
+    function prev(iter, prevQuestion, body, maxlen){
+        // let selection = document.querySelector('input[name="q2Answer"]:checked').value;
+        // if(selection == currentQuestion.answer){
+        //   score++;
+        // }
+        if(correct)
+        {score--;}
+        displayQuestions(iter, prevQuestion, body, maxlen);
+      }
+
+
+
+  </script>
 </body>
 </html>

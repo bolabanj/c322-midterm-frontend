@@ -1,23 +1,23 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 2%;
-  }
-  form {
-    max-width: 61.8%;
-    margin: 2%;
-  }
-  img {
-    max-width: auto;
-    height: auto;
-    border-radius: 5px 5px 0 0;
-  }
-  
-  .container {
-    padding: 2px 16px;
-  }
+  font-family: Arial, sans-serif;
+  margin: 2%;
+}
+form {
+  max-width: 61.8%;
+  margin: 2%;
+}
+img {
+  max-width: auto;
+  height: auto;
+  border-radius: 5px 5px 0 0;
+}
 
-  button {
-    margin: 10px;
-  }
+.container {
+  padding: 2px 16px;
+}
 
- 
+.menu {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}

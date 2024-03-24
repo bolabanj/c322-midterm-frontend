@@ -1,11 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="quiz.css">
+    <link rel="stylesheet" href="make-a-quiz.css">
+  </head>
+
+  <body>
+    <ul class="topnav">
+      <li><a class="" href="index.html">Home</a></li>
+      <li><a href="add-question.html">Add questions</a></li>
+      <li><a class="active" href="make-a-quiz.html">Create a quiz</a></li>
+      <li><a href="take-a-quiz.html">Take a quiz</a></li>
+      <li class="right"><a href="#about">About</a></li>
+    </ul>
+    <div class="menu">
+      <div >
+        <h2>Questions Bank</h2>
+        <p>Click on the question to add it to the quiz</p>
+        <div id="list" class="cards">
+          
+        </div>
+      </div>
+      
+      <div style="width: 30%;" >
+        <h2>
+          <div>The new Quiz (<span>0</span> Questions) </div>
+          <label for="title">
+            Quiz title:
+          </label>
+          <input type="text" name="title" id="quiz-title">
+          <button id="changes" onclick="saveChanges()">Save your Changes</button>
+          <button id="rel" onclick="permaChanges()"> Save this quiz and start a new one</button>
+          <p>
+            If you want to remove a question from the quiz, you can click on the question here and it will be removed from the quiz.
+          </p>
+        </h2>
+        <div id="quiz" class="cards">
+      </div>
+    
+  </div>
+   <script>
+    let host = "http://localhost:8080";
+    let questions = [];
+    let quizCache = [];
+    let reload = false;
+    let changes = false; 
+    let quizid = 0;
+    async function getAll(){
+      if(!reload)
+      {let response = await fetch(host + "/questions");
+      let result = await response.json();
+      questions = result;
+      reload = true;}      
+    }
+
+    
+    
+    async function displayTheQuestions() {
+        await getAll();
+
+        let list = document.getElementById("list");
+        list.innerHTML = "";
+
+        for (let question of questions) {
+          let div = document.createElement("div");
+          div.className = "card";
+          
+          let innerHtml = `
+        <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+        <div class="container">
+          <h4><b>${question.id}</b></h4> 
+          <p>${question.description}</p>
+          <form>
+              <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
+              <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
+
+              <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
+              <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+
+              <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
+              <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+          </form> 
+        </div>
+            `;
+          div.innerHTML = innerHtml;
+          div.addEventListener("click",()=>{addQuiz(question.id), displayTheQuizes()});
+          list.appendChild(div);
+        }
+      }
+      displayTheQuestions();
+      console.log(questions);
+
+      function addQuiz(id){
+        console.log(questions);
+        let question = questions.find(q=>q.id == id);
+        quizCache.push(question);
+        questions = questions.filter(q=>q.id != id);
+        displayTheQuestions();
+        // console.log(quizCache);
+      }
+      function displayTheQuizes(){
+          let list = document.getElementById("quiz");
+          list.innerHTML = "";
+          
+          for (let question of quizCache) {
+            let div = document.createElement("div");
+            div.className = "card";
+
+            let innerHtml = `
+          <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+          <div class="container">
+            <h4><b>${question.id}</b></h4> 
+            <p>${question.description}</p>
+            <form>
+                <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
+                <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
   
-</body>
+                <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
+                <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+  
+                <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
+                <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+            </form>
+          </div>
+              `;
+            div.innerHTML = innerHtml;
+            div.addEventListener("click",()=>{removeQuiz(question.id), displayTheQuestions()});
+            list.appendChild(div);
+
+          }
+      }
+      function removeQuiz(id){
+        let question = quizCache.find(q=>q.id == id);
+        questions.push(question);
+        quizCache = quizCache.filter(q=>q.id != id);
+        displayTheQuizes();
+      }
+      async function saveChanges(){
+        let title = document.getElementById("quiz-title").value;
+        let changeButton = document.getElementById("changes");
+        let questionId = quizCache.map(q=>q.id);
+        console.log(questionId);
+        let requestData = {
+          quizTitle: title,
+          questionIds: questionId
+        
+        }
+        if (!changes){let request = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestData)
+        }
+        let response = await fetch(host + "/quizzes", request);
+        if(response.ok){
+          let result = await response.json();
+          quizid = parseInt(result);
+          console.log(quizid);
+          
+          changes = true;
+        }}
+        else{
+          let request = {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+          }
+          let response = await fetch(host + "/quizzes/"+quizid, request);
+          if(response.ok){
+            let result = await response.json();
+          }
+        }
+
+      }
+      async function permaChanges(){
+        let title = document.getElementById("quiz-title").value;
+        let changes = document.getElementById("rel");
+        let questionId = quizCache.map(q=>q.id);
+        let requestData = {
+          quizTitle: title,
+          questionIds: questionId
+        
+        }
+        if (!changes){let request = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestData)
+        }
+        let response = await fetch(host + "/quizzes", request);
+        if(response.ok){
+          let result = await response.json();
+          quizid = parseInt(result);
+          changes = true;
+        }}
+        else{
+          let request = {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+          }
+          let response = await fetch(host + "/quizzes/"+quizid, request);
+          if(response.ok){
+            let result = await response.json();
+          }
+        }
+        location.reload();
+      }
+
+      
+   </script>
+  </body>
 </html>
