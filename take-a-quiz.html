@@ -23,7 +23,7 @@
 
 
   <script>
-    let host = "http://localhost:8080";
+    let host = "https://midterm-latest-uor4.onrender.com/";
     let quizzes = []
     let score = 0;
     let correct = false;
@@ -68,7 +68,7 @@
       let card = document.createElement("div");
       card.className = "card";
       card.innerHTML =`
-      <img src="http://localhost:8080/questions/${currentQuestion.id}/image" alt="question" style="width:100%">
+      <img src="https://midterm-latest-uor4.onrender.com//questions/${currentQuestion.id}/image" alt="question" style="width:100%">
         <div class="container">
           <h4><b>${currentQuestion.id}</b></h4> 
           <p>${currentQuestion.description}</p>
